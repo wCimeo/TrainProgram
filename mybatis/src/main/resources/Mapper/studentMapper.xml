@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--命名空间 对应dao层的名称/完整限定名-->
+<mapper namespace="dao.StudentDao">
+    <select id="getStudentById" resultType="student">
+        select * from student where student_id = #{studentId}
+    </select>
+
+    <select id="getStudentByStudent" resultType="student">
+        select * from student where student_id = #{studentId}
+    </select>
+<!--    对于简单类型参数（如Long, String等），#{任意名称} 都可以使用，因为只有一个参数-->
+<!--    对于复杂对象参数（如Student实体），，#{属性名} 引用的是传入对象的属性。所以：#{studentId} 会调用 student.getStudentId()-->
+<!--    #{student} 会尝试调用 student.getStudent()，但Student类中没有这个方法，所以会报错。MyBatis会根据方法参数的类型来决定如何解析-->
+
+    <insert id="insertStudent">
+        insert into  student(student_name, student_birth, student_address, student_no, grade_id, student_age)
+        values(#{studentName}, #{studentBirth}, #{studentAddress}, #{studentNo}, #{gradeId}, #{studentAge})
+    </insert>
+
+    <update id="updateStudentAddressById">
+        update student set student_address = #{studentAddress} where student_id = #{studentId}
+    </update>
+
+    <delete id="deleteStudentById">
+        delete from student where student_id = #{studentId}
+    </delete>
+
+<!--    需求：根据学生主键id修改某学生的地址，姓名-->
+<!--    需求1：学生的姓名需要实体类输入-->
+<!--    需求2：学生的地址以及学生的id需要使用独立参数-->
+    <update id="updateStudentParam">
+        update student set student_name = #{stu.studentName}, student_address = #{StuAddress}
+                       where student_id = #{id}
+    </update>
+
+<!--    查询名字中包含“小”字的所有学生-->
+    <select id="getStudentList" resultType="student">
+        select * from student where student_name like concat('%', #{studentName}, '%')
+    </select>
+
+<!--    查询名字中包含“小”字且地址中包含“道”的所有学生，要求map入参-->
+<!--    注意#{}中的参数取决于put进map的key-->
+    <select id = "getStudentListByMap" resultType="student">
+        select * from student where student_name like concat('%', #{name}, '%')
+                              and student_address like concat('%', #{add}, '%')
+    </select>
+
+    <select id="getStudentMapById" resultType="java.util.Map">
+        select student_name 姓名, student.student_no 学号, student_address 地址 from student
+                 where student_id = #{studentId}
+    </select>
+
+    <select id="getStudentListMapByName" resultType="java.util.Map">
+        select student_name 姓名, student.student_no 学号, student_address 地址 from student
+            where student_name like concat('%', #{name}, '%')
+    </select>
+</mapper>
