@@ -20,8 +20,6 @@ public class Student implements Serializable {
     public Student() {
     }
 
-
-
     public Long getStudentId() {
         return studentId;
     }

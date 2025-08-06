@@ -3,8 +3,12 @@
 
 <!--命名空间 对应dao层的名称/完整限定名-->
 <mapper namespace="dao.StudentDao">
+<!--    sql标签-->
+    <sql id="fromStudent">
+        select * from student
+    </sql>
 
-<!--    一对一-->
+<!--   一对一 -->
     <resultMap id="StudentGradeVo" type="vo.StudentGradeVo">
 <!--        配置主表(学生表是主表)，可以提升查询效率-->
         <id property="student.studentId" column="student_id"/>
@@ -27,8 +31,7 @@
             <result property="gradeName" column="grade_name"/>
         </association>
     </resultMap>
-
-<!--一对多-->
+<!--   一对多 -->
     <resultMap id="GradeStudentVo" type="vo.GradeStudentVo">
 <!--        配置主表(年级表是主表)，可以提升查询效率-->
         <id property="grade.gradeId" column="grade_id"/>
@@ -48,7 +51,7 @@
             <result property="studentAge" column="student_age"/>
         </collection>
     </resultMap>
-
+<!--   子查询 -->
     <resultMap id="StudentGradeVo2" type="vo.StudentGradeVo">
         <!--        配置主表(学生表是主表)，可以提升查询效率-->
         <id property="student.studentId" column="student_id"/>
@@ -70,34 +73,38 @@
                      select="dao.GradeDao.getGradeById"
                      column="grade_id"/>
     </resultMap>
-    
+
+<!--    根据studentId查询学生-->
     <select id="getStudentById" resultType="student">
         select * from student where student_id = #{studentId}
     </select>
 
+<!--    根据student查询学生
+    1. 对于简单类型参数（如Long, String等），#{任意名称} 都可以使用，因为只有一个参数
+    2. 对于复杂对象参数（如Student实体），#{属性名} 引用的是传入对象的属性。MyBatis会根据方法参数的类型来决定如何解析
+    3. #{studentId} 会调用 student.getStudentId();而#{student} 会尝试调用 student.getStudent()，但Student类中没有这个方法，会报错。-->
     <select id="getStudentByStudent" resultType="student">
         select * from student where student_id = #{studentId}
     </select>
-<!--    对于简单类型参数（如Long, String等），#{任意名称} 都可以使用，因为只有一个参数-->
-<!--    对于复杂对象参数（如Student实体），，#{属性名} 引用的是传入对象的属性。所以：#{studentId} 会调用 student.getStudentId()-->
-<!--    #{student} 会尝试调用 student.getStudent()，但Student类中没有这个方法，所以会报错。MyBatis会根据方法参数的类型来决定如何解析-->
 
+<!--·   增加学生-->
     <insert id="insertStudent">
         insert into  student(student_name, student_birth, student_address, student_no, grade_id, student_age)
         values(#{studentName}, #{studentBirth}, #{studentAddress}, #{studentNo}, #{gradeId}, #{studentAge})
     </insert>
 
+<!--    更新学生-->
     <update id="updateStudentAddressById">
         update student set student_address = #{studentAddress} where student_id = #{studentId}
     </update>
 
+<!--    删除学生-->
     <delete id="deleteStudentById">
         delete from student where student_id = #{studentId}
     </delete>
 
-<!--    需求：根据学生主键id修改某学生的地址，姓名-->
-<!--    需求1：学生的姓名需要实体类输入-->
-<!--    需求2：学生的地址以及学生的id需要使用独立参数-->
+<!--    需求：根据学生主键id修改某学生的地址，姓名
+        需求1：学生的姓名需要实体类输入；需求2：学生的地址以及学生的id需要使用独立参数-->
     <update id="updateStudentParam">
         update student set student_name = #{stu.studentName}, student_address = #{StuAddress}
                        where student_id = #{id}
@@ -108,56 +115,79 @@
         select * from student where student_name like concat('%', #{studentName}, '%')
     </select>
 
-<!--    查询名字中包含“小”字且地址中包含“道”的所有学生，要求map入参-->
-<!--    注意#{}中的参数取决于put进map的key-->
+<!--    查询名字中包含“小”字且地址中包含“道”的所有学生，要求map入参
+        注意#{}中的参数取决于put进map的key值-->
     <select id = "getStudentListByMap" resultType="student">
         select * from student where student_name like concat('%', #{name}, '%')
                               and student_address like concat('%', #{add}, '%')
     </select>
 
+<!--    根据学生id返回 map 列表-->
     <select id="getStudentMapById" resultType="java.util.Map">
         select student_name 姓名, student.student_no 学号, student_address 地址 from student
                  where student_id = #{studentId}
     </select>
 
+<!--    根据学生name返回 map 列表-->
     <select id="getStudentListMapByName" resultType="java.util.Map">
         select student_name 姓名, student.student_no 学号, student_address 地址 from student
             where student_name like concat('%', #{name}, '%')
     </select>
 
-<!--    一对一-->
-<!--    需求：根据学生id查询学生信息，并且将学生的年级信息封装到StudentGradeVo对象中-->
-    <!--    resultMap:对外部resultMap的引用应用场景-->
-    <!--    数据库字段信息与对象属性不一致复杂的联合查询;自由控制映射结果-->
+<!--    高级映射：一对一
+        需求：根据学生id查询学生信息，并且将学生的年级信息封装到StudentGradeVo对象中
+        resultMap——对外部resultMap的引用应用场景：数据库字段信息与对象属性不一致复杂的联合查询;自由控制映射结果-->
     <select id="getStudentGradeByStudentId" resultMap="StudentGradeVo">
         select * from student, grade
         where student_id = #{studentId}
         and student.grade_id = grade.grade_id
     </select>
 
-<!--    查询学生姓名中包含“陈”字的学生基本信息，包括年级名称-->
+<!--    高级映射：一对一，返回结果为List
+        查询学生姓名中包含“陈”字的学生基本信息，包括年级名称-->
     <select id="getStudentGradeListByName" resultMap="StudentGradeVo">
         select * from student, grade
-        where student_name like concat('%', #{studetName}, '%')
+        where student_name like concat('%', #{name}, '%')
         and student.grade_id = grade.grade_id
     </select>
 
-<!--    根据年级主键id查询该年级下的所有学生的基本信息,包括年级信息-->
-    <select id="getStudentListByGradeId" resultMap="GradeStudentVo">
+<!--    高级映射：一对多
+        根据年级主键id查询该年级下的所有学生的基本信息,包括年级信息-->
+    <select id="getStudentByGradeId" resultMap="GradeStudentVo">
         select * from student, grade
         where student.grade_id = grade.grade_id
         and grade.grade_id = #{gradeId}
     </select>
 
-<!--    查询所有年级下学生姓名中包含”张”字的所有学生的基本信息,包括年级信息-->
+<!--    高级映射：一对多，返回结果为List
+        查询所有年级下学生姓名中包含”张”字的所有学生的基本信息,包括年级信息-->
     <select id="getStudentListByName" resultMap="GradeStudentVo">
         select * from student, grade
         where student.grade_id = grade.grade_id
         and student.student_name like concat('%',#{studentName},'%')
     </select>
 
+<!--    高级映射：子查询-->
     <select id="getStudentGradeListByNameSubQuery" resultMap="StudentGradeVo2">
-        select * from student where student_name like concat('%',#{studentName},'%')
+        <include refid="fromStudent"/> where student_name like concat('%',#{studentName},'%')
     </select>
+
+<!--    动态SQL：where-if
+        根据学生姓名,学生地址,学生学号为条件查询学生-->
+    <select id="getStudentListByWhereIf" resultMap="StudentGradeVo">
+        <include refid="fromStudent"/>
+        <where>
+            <if test = "studentName neq null and studentName neq ''">
+                and student_name like concat('%',#{studentName},'%')
+            </if>
+            <if test = "studentAddress neq null and studentAddress neq ''">
+                and student_address like concat('%',#{studentAddress},'%')
+            </if>
+            <if test = "studentId neq null and studentId neq 0">
+                and student_id = #{studentId}
+            </if>
+        </where>
+    </select>
+
 
 </mapper>
