@@ -3,6 +3,74 @@
 
 <!--命名空间 对应dao层的名称/完整限定名-->
 <mapper namespace="dao.StudentDao">
+
+<!--    一对一-->
+    <resultMap id="StudentGradeVo" type="vo.StudentGradeVo">
+<!--        配置主表(学生表是主表)，可以提升查询效率-->
+        <id property="student.studentId" column="student_id"/>
+
+<!--        然后分别配置两个表，一——association，多——collection-->
+<!--        学生是1-->
+        <association property="student" javaType="entity.Student">
+            <id property="studentId" column="student_id"/>
+            <result property="studentName" column="student_name"/>
+            <result property="studentBirth" column="student_birth"/>
+            <result property="studentAddress" column="student_address"/>
+            <result property="studentNo" column="student_no"/>
+            <result property="gradeId" column="grade_id"/>
+            <result property="studentAge" column="student_age"/>
+        </association>
+
+<!--        年级是1-->
+        <association property="grade" javaType="entity.Grade">
+            <id property="gradeId" column="grade_id"/>
+            <result property="gradeName" column="grade_name"/>
+        </association>
+    </resultMap>
+
+<!--一对多-->
+    <resultMap id="GradeStudentVo" type="vo.GradeStudentVo">
+<!--        配置主表(年级表是主表)，可以提升查询效率-->
+        <id property="grade.gradeId" column="grade_id"/>
+<!--        年级是1-->
+        <association property="grade" javaType="entity.Grade">
+            <id property="gradeId" column="grade_id"/>
+            <result property="gradeName" column="grade_name"/>
+        </association>
+<!--        学生表是多-->
+        <collection property="student" ofType="entity.Student">
+            <id property="studentId" column="student_id"/>
+            <result property="studentName" column="student_name"/>
+            <result property="studentBirth" column="student_birth"/>
+            <result property="studentAddress" column="student_address"/>
+            <result property="studentNo" column="student_no"/>
+            <result property="gradeId" column="grade_id"/>
+            <result property="studentAge" column="student_age"/>
+        </collection>
+    </resultMap>
+
+    <resultMap id="StudentGradeVo2" type="vo.StudentGradeVo">
+        <!--        配置主表(学生表是主表)，可以提升查询效率-->
+        <id property="student.studentId" column="student_id"/>
+
+        <!--        然后分别配置两个表，一——association，多——collection-->
+        <!--        学生是1-->
+        <association property="student" javaType="entity.Student" autoMapping="true">
+            <id property="studentId" column="student_id"/>
+<!--            <result property="studentName" column="student_name"/>-->
+<!--            <result property="studentBirth" column="student_birth"/>-->
+<!--            <result property="studentAddress" column="student_address"/>-->
+<!--            <result property="studentNo" column="student_no"/>-->
+<!--            <result property="gradeId" column="grade_id"/>-->
+<!--            <result property="studentAge" column="student_age"/>-->
+        </association>
+
+        <!--        年级是1-->
+        <association property="grade" javaType="entity.Grade"
+                     select="dao.GradeDao.getGradeById"
+                     column="grade_id"/>
+    </resultMap>
+    
     <select id="getStudentById" resultType="student">
         select * from student where student_id = #{studentId}
     </select>
@@ -56,4 +124,40 @@
         select student_name 姓名, student.student_no 学号, student_address 地址 from student
             where student_name like concat('%', #{name}, '%')
     </select>
+
+<!--    一对一-->
+<!--    需求：根据学生id查询学生信息，并且将学生的年级信息封装到StudentGradeVo对象中-->
+    <!--    resultMap:对外部resultMap的引用应用场景-->
+    <!--    数据库字段信息与对象属性不一致复杂的联合查询;自由控制映射结果-->
+    <select id="getStudentGradeByStudentId" resultMap="StudentGradeVo">
+        select * from student, grade
+        where student_id = #{studentId}
+        and student.grade_id = grade.grade_id
+    </select>
+
+<!--    查询学生姓名中包含“陈”字的学生基本信息，包括年级名称-->
+    <select id="getStudentGradeListByName" resultMap="StudentGradeVo">
+        select * from student, grade
+        where student_name like concat('%', #{studetName}, '%')
+        and student.grade_id = grade.grade_id
+    </select>
+
+<!--    根据年级主键id查询该年级下的所有学生的基本信息,包括年级信息-->
+    <select id="getStudentListByGradeId" resultMap="GradeStudentVo">
+        select * from student, grade
+        where student.grade_id = grade.grade_id
+        and grade.grade_id = #{gradeId}
+    </select>
+
+<!--    查询所有年级下学生姓名中包含”张”字的所有学生的基本信息,包括年级信息-->
+    <select id="getStudentListByName" resultMap="GradeStudentVo">
+        select * from student, grade
+        where student.grade_id = grade.grade_id
+        and student.student_name like concat('%',#{studentName},'%')
+    </select>
+
+    <select id="getStudentGradeListByNameSubQuery" resultMap="StudentGradeVo2">
+        select * from student where student_name like concat('%',#{studentName},'%')
+    </select>
+
 </mapper>

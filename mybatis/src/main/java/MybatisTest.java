@@ -5,6 +5,9 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.junit.Test;
+import vo.GradeStudentVo;
+import vo.StudentGradeVo;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -28,7 +31,7 @@ public class MybatisTest {
     }
 
     //获取mapper(写了test1-test3，发现前面获取mapper的代码都是一样的，酒疯装起来)
-    public StudentDao getStudetnMapper(){
+    public StudentDao getStudentMapper(){
         SqlSession sqlSession = MybatisTest.sqlSessionFactory.openSession(true);
         StudentDao mapper = sqlSession.getMapper(StudentDao.class);
         return mapper;
@@ -74,7 +77,7 @@ public class MybatisTest {
     public void test4(){
         Student student = new Student();
         student.setStudentId(100010l);
-        System.out.println(getStudetnMapper().getStudentByStudent(student));
+        System.out.println(getStudentMapper().getStudentByStudent(student));
     }
 
     //增加学生
@@ -101,7 +104,7 @@ public class MybatisTest {
     //修改学生
     @Test
     public void test6(){
-        StudentDao mapper = getStudetnMapper();
+        StudentDao mapper = getStudentMapper();
 
         Student student = new Student();
         student.setStudentId(100180l);
@@ -117,7 +120,7 @@ public class MybatisTest {
     //删除学生
     @Test
     public void test7(){
-        StudentDao mapper = getStudetnMapper();
+        StudentDao mapper = getStudentMapper();
         int i = mapper.deleteStudentById(100222l);
         if(i>0){
             System.out.println("删除成功");
@@ -132,7 +135,7 @@ public class MybatisTest {
      * */
     @Test
     public void test8(){
-        StudentDao mapper = getStudetnMapper();
+        StudentDao mapper = getStudentMapper();
 
         Student student = new Student();
         student.setStudentName("小陈");
@@ -147,7 +150,7 @@ public class MybatisTest {
     //查询名字中包含“小”字的所有学生，要求实体类入参
     @Test
     public void test9(){
-        StudentDao mapper = getStudetnMapper();
+        StudentDao mapper = getStudentMapper();
         Student student = new Student();
         student.setStudentName("小");
 
@@ -160,7 +163,7 @@ public class MybatisTest {
     //查询名字中包含“小”字且地址中包含“道”的所有学生，要求map入参
     @Test
     public void test10(){
-        StudentDao mapper = getStudetnMapper();
+        StudentDao mapper = getStudentMapper();
 
         Map<String,Object> map = new HashMap<>();
         map.put("name","小");
@@ -172,7 +175,7 @@ public class MybatisTest {
     //返回map
     @Test
     public void test11(){
-        StudentDao mapper = getStudetnMapper();
+        StudentDao mapper = getStudentMapper();
         Map<String, Object> map = mapper.getStudentMapById(100014l);
         System.out.println(map);
     }
@@ -180,10 +183,56 @@ public class MybatisTest {
     //返回map集合
     @Test
     public void test12(){
-        StudentDao mapper = getStudetnMapper();
+        StudentDao mapper = getStudentMapper();
         List<Map<String, Object>> list = mapper.getStudentListMapByName("张");
         list.forEach(System.out::println);
     }
+
+    //需求：根据学生id查询学生的基本信息，包括年级的名称
+    @Test
+    public void test13(){
+        StudentDao mapper = getStudentMapper();
+        StudentGradeVo studentGradeVo = mapper.getStudentGradeByStudentId(100007l);
+        System.out.println(studentGradeVo);
+    }
+
+    //并且查询学生姓名中包含“陈”字的学生基本信息，包括年级名称
+    @Test
+    public void test14(){
+        StudentDao mapper = getStudentMapper();
+        List<StudentGradeVo> list = mapper.getStudentGradeListByName("陈");
+        list.forEach(System.out::println);
+    }
+
+    //    根据年级主键id查询该年级下的所有学生的基本信息,包括年级信息
+    @Test
+    public void test15(){
+        StudentDao mapper = getStudentMapper();
+        GradeStudentVo gradeStudentVo = mapper.getStudentListByGradeId(2l);
+        gradeStudentVo.getStudent().forEach(System.out::println);
+    }
+
+    //查询所有年级下学生姓名中包含”张”字的所有学生的基本信息,包括年级信息
+    @Test
+    public void test16(){
+        //获取mapper
+        StudentDao studentMapper = getStudentMapper();
+        List<GradeStudentVo> gradeStudentVos = studentMapper.getStudentListByName("张");
+        gradeStudentVos.forEach(gradeStudentVo -> {
+            System.out.println(gradeStudentVo.getGrade());
+            gradeStudentVo.getStudent().forEach(System.out::println);
+        });
+    }
+
+//    查询学生姓名中包含”张”字的所有学生的基本信息,包括年级的名称
+    @Test
+    public void test17(){
+        StudentDao studentMapper = getStudentMapper();
+        List<StudentGradeVo> list = studentMapper.getStudentGradeListByNameSubQuery("张");
+        list.forEach(System.out::println);
+    }
+
+
 
 }
 

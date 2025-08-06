@@ -15,6 +15,7 @@
     <!--3.配置类型别名-->
     <typeAliases>
         <typeAlias alias="student" type="entity.Student"/>
+        <typeAlias alias="grade" type="entity.Grade"/>
     </typeAliases>
 
     <!--4.配置JDBC连接-->
@@ -32,7 +33,8 @@
 
     <!--5.加载dao层对应mapper(映射)文件-->
     <mappers>
-        <mapper resource="mapper/studentMapper.xml"></mapper>
+        <mapper resource="mapper/studentMapper.xml"/>
+        <mapper resource="mapper/gradeMapper.xml"/>
     </mappers>
 
 </configuration>

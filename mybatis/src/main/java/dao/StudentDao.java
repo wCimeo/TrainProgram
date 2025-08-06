@@ -2,6 +2,8 @@ package dao;
 import entity.Student;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
+import vo.GradeStudentVo;
+import vo.StudentGradeVo;
 
 import java.util.List;
 import java.util.Map;
@@ -54,6 +56,28 @@ public interface StudentDao {
     //要求1：返回值为地址
     //要求2：返回map的key为姓名，学号，地址
     List<Map<String,Object>> getStudentListMapByName(String studentName);
+
+    //高级映射，一对一
+    //需求：根据学生id查询学生的基本信息，包括年级的名称
+    StudentGradeVo getStudentGradeByStudentId(Long studentId);
+
+
+    //高级映射，一对一，但是返回的数据类型为List（集合）
+    //并且查询学生姓名中包含“陈”字的学生基本信息，包括年级名称
+    List<StudentGradeVo> getStudentGradeListByName(String studentName);
+
+//    高级映射，一对多
+//    根据年级主键id查询该年级下的所有学生的基本信息,包括年级信息
+    GradeStudentVo getStudentListByGradeId(Long gradeId);
+
+    //高级映射，一对多，但是返回的数据类型为List（集合）
+//    查询所有年级下学生姓名中包含”张”字的所有学生的基本信息,包括年级信息
+    List<GradeStudentVo> getStudentListByName(String studentName);
+
+
+//    需求: 查询学生姓名中包含”张”字的所有学生的基本信息,包括年级的名称
+//    要求: 使用高级映射一对一的子查询
+    List<StudentGradeVo> getStudentGradeListByNameSubQuery(String studentName);
 }
 
 

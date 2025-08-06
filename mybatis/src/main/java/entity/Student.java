@@ -1,6 +1,7 @@
 package entity;
+import java.io.Serializable;
 
-public class Student {
+public class Student implements Serializable {
     //学生id
     private Long studentId;
     //学生姓名
