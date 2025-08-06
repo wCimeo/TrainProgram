@@ -1,4 +1,5 @@
 package dao;
+import dto.StudentDto;
 import entity.Student;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
@@ -78,6 +79,57 @@ public interface StudentDao {
     需求: 根据学生姓名,学生地址,学生学号为条件查询学生
     要求: 以上3个字段都为可选项,如果用户传入了该条件就需要使用该条件进行查询(用户不传则不使用)*/
     List<StudentGradeVo> getStudentListByWhereIf(Student student);
+
+    /*动态SQL：set-where-if
+    需求: 修改学生姓名,学生地址,学生学号
+    要求: 以上3个字段都为可选项,如果用户传入了该条件就需要使用该条件进行修改(用户不传则不使用)*/
+    int updateStudentSetIfWhere(Student student);
+
+    /*foreach 复杂查询
+    需求: 根据学生的N个主键id查询学生的基本信息
+    要求: 学生N的id需要使用数组入参*/
+    List<StudentGradeVo> getStudentGradeVoByArrayIds(Long[] ids);
+
+    /*foreach 复杂查询
+    需求: 根据学生的N个主键id查询学生的基本信息
+    要求: 学生N的id需要使用List入参*/
+    List<StudentGradeVo> getStudentGradeVoByListIds(List<Long> ids);
+
+    /*foreach 复杂查询
+    需求: 根据学生的N个主键id查询学生的基本信息
+    要求: 学生N的id需要使用Map入参*/
+    List<StudentGradeVo> getStudentGradeVoByMapIds(Map<String, Object> map);
+
+    //批量新增学生
+    int insertStudentBatch(List<Student> students);
+
+    /*choose
+    需求: 根据学生的id查询学生的基本信息
+    要求1: 如果传入的id为100001则将学号 + 1后进行查询
+    要求2: 如果传入的id为100002则将学号 + 2后进行查询
+    要求3: 其他id不变*/
+    StudentGradeVo getStudentGradeVoChoose(Long studentId);
+
+    /*@注解开发
+    需求: 查询学生姓名中包含”张”字的所有学生的基本信息
+    要求1: 使用dao层注解的方式编写动态sql (学生姓名如果用户不传则不使用)*/
+    @Select("<script>" +
+                "select * from student" +
+                "<where>" +
+                    "<if test='_parameter neq null and _parameter neq \"\"'>" +
+                         "and student_name like concat('%', #{studentName}, '%' )" +
+                     "</if>" +
+                 "</where>" +
+            "</script>")
+    List<Student> getStudentByStudentNameComment(String studentName);
+
+
+
+    /*需求: 分页查询学生姓名中包含”张”字的所有学生的基本信息
+    要求1: 学生姓名如果用户不传则不使用
+    要求2: 需要分页*/
+    List<StudentGradeVo> getStudentGradeVoLimit(StudentDto studentDto);
+
 }
 
 

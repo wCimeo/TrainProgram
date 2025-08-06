@@ -189,5 +189,109 @@
         </where>
     </select>
 
+<!--    动态SQL：set-where-if
+        修改学生姓名,学生地址,学生学号-->
+    <update id="updateStudentSetIfWhere">
+        update student
+        <set>
+            <if test = "studentName neq null and studentName neq ''">
+                student_name = #{studentName},
+            </if>
+            <if test="studentAddress neq null and studentAddress neq ''">
+                student_address = #{studentAddress},
+            </if>
+            <if test = "studentNo neq null and studentNo neq 0">
+                student_no = #{studentNo},
+            </if>
+        </set>
+        where student_id = #{studentId}
+    </update>
+
+
+<!--    foreach-array  collection必须写
+        需求: 根据学生的N个主键id查询学生的基本信息
+        要求: 学生N的id需要使用数组入参-->
+    <select id="getStudentGradeVoByArrayIds" resultMap="StudentGradeVo">
+        <include refid="fromStudent"/>
+        <where>
+            student_id in
+            <foreach collection="array" open="(" separator="," close=")" item="studentId">
+                #{studentId}
+            </foreach>
+        </where>
+    </select>
+
+<!--    foreach-list
+        需求: 根据学生的N个主键id查询学生的基本信息
+        要求: 学生N的id需要使用集合入参-->
+    <select id="getStudentGradeVoByListIds" resultMap="StudentGradeVo">
+        <include refid="fromStudent"/>
+        <where>
+            student_id in
+            <foreach collection="list" open="(" separator="," close=")" item="studentId">
+                #{studentId}
+            </foreach>
+        </where>
+    </select>
+
+<!--    foreach-map
+        需求: 根据学生的N个主键id查询学生的基本信息
+        要求: 学生N的id需要使用map入参-->
+    <select id="getStudentGradeVoByMapIds" resultMap="StudentGradeVo">
+        <include refid="fromStudent"/>
+        <where>
+            and student_id IN
+            <!--遍历map里面存入的数组-->
+            <foreach collection="arrIds" open="(" separator="," close=")" item="id">
+                #{id}
+            </foreach>
+            or student_id IN
+            <!--遍历map里面存入的集合-->
+            <foreach collection="listIds" open="(" separator="," close=")" item="aaa" >
+                #{aaa}
+            </foreach>
+        </where>
+    </select>
+
+<!--    批量新增学生-->
+    <insert id="insertStudentBatch" parameterType="entity.Student">
+        insert into student(student_id,student_name,student_birth,student_address,student_no,grade_id,student_age) values
+        <foreach collection="list" item="student" separator=",">
+            (#{student.studentId},#{student.studentName},#{student.studentBirth},#{student.studentAddress},#{student.studentNo},#{student.gradeId},#{student.studentAge})
+        </foreach>
+    </insert>
+
+<!--    需求: 根据学生的id查询学生的基本信息-->
+    <select id="getStudentGradeVoChoose" resultMap="StudentGradeVo">
+        <include refid="fromStudent"/>
+        <where>
+            student_id =
+            <choose>
+                <when test="_parameter eq 100001">
+                    #{studentId} + 1
+                </when>
+                <when test="_parameter eq 100002">
+                    #{studentId} + 2
+                </when>
+                <otherwise>
+                    #{studentId}
+                </otherwise>
+            </choose>
+        </where>
+    </select>
+
+<!--    需求: 分页查询学生姓名中包含”张”字的所有学生的基本信息
+        要求1: 学生姓名如果用户不传则不使用
+        要求2: 需要分页-->
+    <select id="getStudentGradeVoLimit" resultMap="studentGradeVo">
+        <include refid="fromStudent"/>
+        <where>
+            <if test="student.studentName neq null and student.studentName neq ''">
+                and student_name like concat('%', #{student.studentName}, '%')
+            </if>
+        </where>
+        limit #{pageNo}, #{pageSize}
+    </select>
+
 
 </mapper>

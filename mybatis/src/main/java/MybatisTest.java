@@ -1,17 +1,17 @@
 import dao.StudentDao;
+import dto.StudentDto;
 import entity.Student;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.junit.Test;
+import uitls.PageUtils;
 import vo.GradeStudentVo;
 import vo.StudentGradeVo;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class MybatisTest {
@@ -87,8 +87,8 @@ public class MybatisTest {
         student.setStudentName("小王");
         student.setStudentBirth("1999-09-09");
         student.setStudentAddress("上海");
-        student.setStudentNo("9526");
-        student.setGradeId(6l);
+        student.setStudentNo(9526L);
+        student.setGradeId(6L);
         student.setStudentAge(20);
 
         StudentDao mapper = getStudentMapper();
@@ -174,7 +174,7 @@ public class MybatisTest {
     @Test
     public void test11(){
         StudentDao mapper = getStudentMapper();
-        Map<String, Object> map = mapper.getStudentMapById(100014l);
+        Map<String, Object> map = mapper.getStudentMapById(100014L);
         System.out.println(map);
     }
 
@@ -206,7 +206,7 @@ public class MybatisTest {
     @Test
     public void test15(){
         StudentDao mapper = getStudentMapper();
-        GradeStudentVo gradeStudentVo = mapper.getStudentByGradeId(2l);
+        GradeStudentVo gradeStudentVo = mapper.getStudentByGradeId(2L);
         gradeStudentVo.getStudent().forEach(System.out::println);
     }
 
@@ -235,11 +235,127 @@ public class MybatisTest {
     public void test18(){
         StudentDao mapper = getStudentMapper();
         Student student = new Student();
+//        通过对数据库查询参数的设置实现动态查询
         student.setStudentName("赵");
-        student.setStudentAddress("大道");
+//        student.setStudentAddress("大道");
         student.setGradeId(2L);
         List<StudentGradeVo> list = mapper.getStudentListByWhereIf(student);
         list.forEach(System.out::println);
     }
+
+    //set-where-if
+    @Test
+    public void test19(){
+        //获取mapper
+        StudentDao studentMapper = getStudentMapper();
+        //封装修改参数
+        Student student = new Student();
+        student.setStudentName("张小桑");
+        student.setStudentId(100001L);
+        student.setStudentAddress("自贡");
+        int i = studentMapper.updateStudentSetIfWhere(student);
+        if ( i > 0){
+            System.out.println("修改成功");
+        }else {
+            System.out.println("修改失败");
+        }
+    }
+
+    //foreach-array 复杂查询 根据学生的N个主键id查询学生的基本信息
+    @Test
+    public void test20(){
+        StudentDao studentMapper = getStudentMapper();
+        //封装参数
+        Long[] ids = {100001L, 100002L, 100004L, 8989L};
+        studentMapper.getStudentGradeVoByArrayIds(ids).forEach(System.out::println);
+    }
+
+    //foreach-list 复杂查询 根据学生的N个主键id查询学生的基本信息
+    @Test
+    public void test21(){
+        StudentDao studentMapper = getStudentMapper();
+        //封装参数
+        List<Long> list = Arrays.asList(100001l, 100002l, 100004l, 8989l);
+        studentMapper.getStudentGradeVoByListIds(list).forEach(System.out::println);
+    }
+
+    //foreach-map 复杂查询 根据学生的N个主键id查询学生的基本信息
+    @Test
+    public void test22(){
+        StudentDao studentMapper = getStudentMapper();
+        //封装参数
+        Map<String, Object> map = new HashMap<>();
+        //1.数组
+        Long[] ids = {100001L, 100002L, 100004L, 8989L};
+        map.put("arrIds", ids);
+        //2.集合
+        List<Long> list = Arrays.asList(100015L, 100023L, 100101L, 100169L);
+        map.put("listIds", list);
+        studentMapper.getStudentGradeVoByMapIds(map).forEach(System.out::println);
+    }
+
+    //批量新增
+    @Test
+    public void test23(){
+        StudentDao studentMapper = getStudentMapper();
+        //封装参数
+        List<Student> student = new ArrayList<Student>();
+        //第一个学生
+        Student student1 = new Student();
+        student1.setStudentName("王老七");
+        student1.setStudentBirth("1995-01-01");
+        student1.setStudentAddress("二仙桥101号");
+        student1.setStudentNo(9525L);
+        student1.setGradeId(6L);
+        student1.setStudentAge(18);
+        student.add(student1);
+        //第二个学生
+        Student student2 = new Student();
+        student2.setStudentName("王老八");
+        student2.setStudentBirth("1995-01-01");
+        student2.setStudentAddress("二仙桥102号");
+        student2.setStudentNo(9524L);
+        student2.setGradeId(6L);
+        student2.setStudentAge(18);
+        student.add(student2);
+        int i = studentMapper.insertStudentBatch(student);
+        System.out.println("批量新增执行成功: 成功添加了" + i + "条数据");
+    }
+
+    //choose 根据学生的id查询学生的基本信息
+    @Test
+    public void test24(){
+        StudentDao studentMapper = getStudentMapper();
+        System.out.println(studentMapper.getStudentGradeVoChoose(100006L));
+    }
+
+    //注解开发
+    @Test
+    public void test25(){
+        StudentDao studentMapper = getStudentMapper();
+        studentMapper.getStudentByStudentNameComment("张").forEach(System.out::println);
+    }
+
+    //分页查询
+    @Test
+    public void test26(){
+        StudentDao studentMapper = getStudentMapper();
+        //封装参数
+        StudentDto studentDto = new StudentDto();
+        Student student = new Student();
+        student.setStudentName("张");
+        studentDto.setStudent(student);
+        //当前页码
+        int pageNo = 2;
+        //每页条数
+        int pageSize = 10;
+        studentDto.setPageSize(pageSize);
+        studentDto.setPageNo(PageUtils.getStartPage(pageNo, pageSize));
+        studentMapper.getStudentGradeVoLimit(studentDto).forEach(System.out::println);
+    }
+
+
+
 }
+
 

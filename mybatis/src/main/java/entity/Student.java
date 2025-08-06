@@ -11,7 +11,7 @@ public class Student implements Serializable {
     //学生地址
     private String studentAddress;
     //学生学号
-    private String studentNo;
+    private Long studentNo;
     //年级外键id
     private Long gradeId;
     //学生年龄
@@ -52,11 +52,11 @@ public class Student implements Serializable {
         this.studentAddress = studentAddress;
     }
 
-    public String getStudentNo() {
+    public Long getStudentNo() {
         return studentNo;
     }
 
-    public void setStudentNo(String studentNo) {
+    public void setStudentNo(Long studentNo) {
         this.studentNo = studentNo;
     }
 
